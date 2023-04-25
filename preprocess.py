@@ -12,9 +12,8 @@ import Levenshtein
 
 lines = ['I like to ice skate on our pond',
          'OUR POND ICE SKATE I LIKE',
-    "Don't forget to put your name on the paper.",
-    "PAPER YOUR NAME WRITE NOT FORGET."]
-
+         "Don't forget to put your name on the paper.",
+         "PAPER YOUR NAME WRITE NOT FORGET."]
 
 with open("EngToASLPairs.txt", "r") as f:
     lines = f.readlines()
@@ -48,13 +47,16 @@ def construct_token_level_mapping(asl_text, english_text):
 
 
 def find_root(current_english_root, eng_tokens, english_heads_words, eng_to_asl):
-    index_ = eng_tokens.index(current_english_root)
-    if current_english_root == english_heads_words[index_]:
+    try:
+        index_ = eng_tokens.index(current_english_root)
+        if current_english_root == english_heads_words[index_]:
+            return current_english_root
+        if current_english_root in eng_to_asl:
+            return current_english_root
+        else:
+            return find_root(english_heads_words[index_], eng_tokens, english_heads_words, eng_to_asl)
+    except Exception as e:
         return current_english_root
-    if current_english_root in eng_to_asl:
-        return current_english_root
-    else:
-        return find_root(english_heads_words[index_], eng_tokens, english_heads_words, eng_to_asl)
 
 
 def process_asl_heads(asl_text, english_text, english_heads, english_heads_words):
@@ -144,6 +146,12 @@ def preprocess_asl_english_data_pairs(lines):
     # Group English and ASL lines into pairs
     for i in range(0, len(lines), 2):
         if i + 1 < len(lines):
+            if i + 1 < len(lines):
+                num_processed_pairs += 1
+            if num_processed_pairs % 25 == 0:
+                percent_complete = (i / len(lines)) * 100
+                print(f"Processed {num_processed_pairs} out of {num_pairs} pairs ({percent_complete:.2f}% complete)")
+
             english_text = preprocess_token(lines[i])
             asl_text = preprocess_token(lines[i + 1])
 
@@ -161,8 +169,7 @@ def preprocess_asl_english_data_pairs(lines):
             # =========== Process ASL =======================
             asl_heads, asl_heads_words = process_asl_heads(asl_text, english_text, heads, heads_words)
             asl_deps = process_asl_deps(asl_text, english_text, deps)
-            if '-' in asl_heads:
-                continue
+
             data_item = {
                 "english": {
                     "text": english_text,
@@ -179,6 +186,10 @@ def preprocess_asl_english_data_pairs(lines):
             }
 
             data.append(data_item)
+        if i % 100 == 0:
+            save_to_json(data, "english_asl_pairs_raw_{}_data.json".format(str(i)))
+            print("========saved data {}========".format(str(i)))
+            data = []
     return data
 
 

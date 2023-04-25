@@ -1,1 +1,1 @@
-[{"english": {"text": "I like to ice skate on our pond", "heads_word": ["like", "like", "ice", "like", "ice", "ice", "pond", "on"], "heads": [1, 1, 3, 1, 3, 3, 7, 5], "deps": ["nsubj", "ROOT", "aux", "xcomp", "dobj", "prep", "poss", "pobj"]}, "asl": {"text": "OUR POND ICE SKATE I LIKE", "heads_word": ["POND", "ICE", "LIKE", "ICE", "LIKE", "LIKE"], "heads": [1, 2, 5, 2, 5, 5], "deps": ["poss", "pobj", "xcomp", "dobj", "nsubj", "ROOT"]}}]
+[]

@@ -9,6 +9,35 @@ from spacy.training import Example
 from spacy.pipeline import DependencyParser
 from typing import List, Tuple
 import Levenshtein
+import json
+import glob
+
+
+def read_and_append_json_files(pattern):
+    all_data = []
+
+    for file_name in glob.glob(pattern):
+        with open(file_name, 'r') as f:
+            data = json.load(f)
+            all_data.extend(data)
+
+    return all_data
+
+
+def transform_training_data(data):
+    transformed_data = []
+
+    for item in data:
+        asl_text = item['asl']['text']
+        asl_heads = item['asl']['heads']
+        asl_deps = item['asl']['deps']
+
+        if '-' in asl_heads:
+            continue
+
+        transformed_data.append((asl_text, {'heads': asl_heads, 'deps': asl_deps}))
+
+    return transformed_data
 
 
 # Load the data from the JSON file
@@ -19,8 +48,13 @@ def load_from_json(filename):
     return data
 
 
-TRAINING_DATA = load_from_json('training_asl_data.json')
-print(TRAINING_DATA)
+# Read and append all JSON files
+pattern = "english_asl_pairs_raw_*_data.json"
+all_data = read_and_append_json_files(pattern)
+
+# Transform the data
+TRAINING_DATA = transform_training_data(all_data)
+TRAINING_DATA = TRAINING_DATA[5:10]
 
 PARSER_CONFIG = 'parser.cfg'
 
@@ -30,8 +64,13 @@ def create_training_examples(training_data: List[Tuple]) -> List[Example]:
     examples = []
     nlp = spacy.load('en_core_web_sm')
     for text, annotations in training_data:
-        print(f"{text} - {annotations}")
-        examples.append(Example.from_dict(nlp(text), annotations))
+        # print(f"{text} - {annotations}")
+        try:
+            examples.append(Example.from_dict(nlp(text), annotations))
+        except Exception as e:
+            print(f"Error processing: {text} - {annotations}")
+            continue
+    print("finish")
     return examples
 
 
@@ -40,7 +79,7 @@ def save_trained_nlp(nlp, custom_name):
 
 
 def load_trained_nlp(custom_name):
-    nlp = spacy.load('en_core_web_md', exclude=["parser"])
+    nlp = spacy.load('en_core_web_sm', exclude=["parser"])
     parser_nlp = spacy.load(custom_name)
     nlp.add_pipe("parser", source=parser_nlp)
     return nlp

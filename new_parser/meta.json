@@ -19,12 +19,11 @@
   "labels":{
     "parser":[
       "ROOT",
+      "advmod",
       "dep",
       "dobj",
-      "nsubj",
-      "pobj",
-      "poss",
-      "xcomp"
+      "npadvmod",
+      "nsubj"
     ]
   },
   "pipeline":[
