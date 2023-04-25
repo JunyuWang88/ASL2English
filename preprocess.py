@@ -9,14 +9,14 @@ from spacy.training import Example
 from spacy.pipeline import DependencyParser
 from typing import List, Tuple
 import Levenshtein
-
-lines = ['I like to ice skate on our pond',
-         'OUR POND ICE SKATE I LIKE',
-         "Don't forget to put your name on the paper.",
-         "PAPER YOUR NAME WRITE NOT FORGET."]
+#
+# lines = ["Chuck Baird was an artist and founder of the De'VIA art movement, which conveys a Deaf world viewpoint through art.",
+#         "C-H-U-C-K B-A-I-R-D HIMSELF DEAF ARTIST HE FOUNDED D-E V-I-A MEANS WHAT? SHOW-ALL (conveys) DEAF WORLD VIEWPOINT THROUGH ART."]
 
 with open("EngToASLPairs.txt", "r") as f:
     lines = f.readlines()
+
+print(len(lines) / 2)
 
 
 def preprocess_token(token_text):
@@ -94,20 +94,23 @@ def process_asl_heads(asl_text, english_text, english_heads, english_heads_words
     return asl_heads, asl_heads_words
 
 
-def process_asl_deps(asl_text, english_text, english_deps):
+def process_asl_deps_and_pos(asl_text, english_text, english_deps, english_pos):
     # set up
     asl_to_eng, eng_to_asl = construct_token_level_mapping(asl_text, english_text)
     asl_tokens = asl_text.split()
     eng_tokens = english_text.split()
     asl_deps = []
+    asl_pos = []
     for asl_token in asl_tokens:
         if asl_token in asl_to_eng:
             index_ = eng_tokens.index(asl_to_eng[asl_token])
             asl_deps.append(english_deps[index_])
+            asl_pos.append(english_pos[index_])
         else:
             asl_deps.append('-')
 
-    return asl_deps
+    return asl_deps, asl_pos
+
 
 
 '''Given an asl token, find the closest english token '''
@@ -165,31 +168,33 @@ def preprocess_asl_english_data_pairs(lines):
             heads_words = [token.head.text for token in doc]
             heads = [token.head.i for token in doc]
             deps = [token.dep_ for token in doc]
-
+            pos = [token.pos_ for token in doc]
             # =========== Process ASL =======================
             asl_heads, asl_heads_words = process_asl_heads(asl_text, english_text, heads, heads_words)
-            asl_deps = process_asl_deps(asl_text, english_text, deps)
+            asl_deps, asl_pos = process_asl_deps_and_pos(asl_text, english_text, deps, pos)
 
             data_item = {
                 "english": {
                     "text": english_text,
                     "heads_word": heads_words,
                     "heads": heads,
-                    "deps": deps
+                    "deps": deps,
+                    "pos": pos
                 },
                 "asl": {
                     "text": asl_text,
                     "heads_word": asl_heads_words,
                     "heads": asl_heads,
-                    "deps": asl_deps
+                    "deps": asl_deps,
+                    "pos": asl_pos
                 }
             }
 
             data.append(data_item)
-        if i % 100 == 0:
-            save_to_json(data, "english_asl_pairs_raw_{}_data.json".format(str(i)))
-            print("========saved data {}========".format(str(i)))
-            data = []
+        # if i % 1000 == 0:
+        #     save_to_json(data, "english_asl_pairs_raw_{}_data.json".format(str(i)))
+        #     print("========saved data {}========".format(str(i)))
+        #     data = []
     return data
 
 
@@ -222,5 +227,5 @@ def load_from_json(filename):
 
 raw_training_data = preprocess_asl_english_data_pairs(lines)
 save_to_json(raw_training_data, "english_asl_pairs_raw_data.json")
-print(raw_training_data)
-transform_training_data(raw_training_data)
+print(len(raw_training_data))
+# transform_training_data(raw_training_data)
