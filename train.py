@@ -11,7 +11,21 @@ from typing import List, Tuple
 import Levenshtein
 import json
 import glob
+import spacy
+from spacy.tokens import Doc, DocBin
 
+
+def convert_train_spacy(TRAINING_DATA):
+    nlp = spacy.blank("en")
+    docbin = DocBin()
+    for text, annotations in TRAINING_DATA:
+        words = text.split()
+        heads = annotations['heads']
+        deps = annotations['deps']
+        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps)
+        docbin.add(doc)
+
+    docbin.to_disk("./train.spacy")
 
 def read_and_append_json_files(pattern):
     all_data = []
@@ -54,7 +68,9 @@ all_data = read_and_append_json_files(pattern)
 
 # Transform the data
 TRAINING_DATA = transform_training_data(all_data)
-TRAINING_DATA = TRAINING_DATA[5:10]
+TRAINING_DATA = TRAINING_DATA[51:]
+
+convert_train_spacy(TRAINING_DATA)
 
 PARSER_CONFIG = 'parser.cfg'
 
