@@ -23,6 +23,18 @@ def convert_train_and_validation_spacy(TRAINING_DATA, train_ratio=0.8):
     # Calculate the split index
     split_index = int(train_ratio * len(TRAINING_DATA))
 
+    updated_data = []
+
+    for item in TRAINING_DATA:
+        sentence, info_dict = item
+        updated_pos = ['X' if pos == '-' else pos for pos in info_dict['pos']]
+        info_dict['pos'] = updated_pos
+        updated_data.append((sentence, info_dict))
+
+    TRAINING_DATA = updated_data
+
+
+
     # Split the data into training and development sets
     train_data = TRAINING_DATA[:split_index]
     dev_data = TRAINING_DATA[split_index:]
@@ -33,19 +45,21 @@ def convert_train_and_validation_spacy(TRAINING_DATA, train_ratio=0.8):
         words = text.split()
         heads = annotations['heads']
         deps = annotations['deps']
-        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps)
+        pos = annotations['pos']
+        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps, pos=pos)
         train_docbin.add(doc)
     train_docbin.to_disk("./train.spacy")
 
     # Save the development data
-    dev_docbin = DocBin()
+    test_docbin = DocBin()
     for text, annotations in dev_data:
         words = text.split()
         heads = annotations['heads']
         deps = annotations['deps']
-        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps)
-        dev_docbin.add(doc)
-    dev_docbin.to_disk("./dev.spacy")
+        pos = annotations['pos']
+        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps, pos=pos)
+        test_docbin.add(doc)
+    test_docbin.to_disk("./dev.spacy")
 
 
 def read_and_append_json_files(pattern):
@@ -65,6 +79,7 @@ def transform_training_data(data):
         asl_text = item['asl']['text']
         asl_heads = item['asl']['heads']
         asl_deps = item['asl']['deps']
+        asl_pos = item['asl']['pos']
 
         num_of_root = 0
         for deps in asl_deps:
@@ -74,6 +89,11 @@ def transform_training_data(data):
             print("More than one root")
             print(asl_text)
             continue
+        if len(asl_deps) != len(asl_heads) or len(asl_deps) != len(asl_pos):
+            print("Different length of deps and heads")
+            print(asl_text)
+            continue
+
 
         def has_cycle(graph):
             n = len(graph)
@@ -105,9 +125,12 @@ def transform_training_data(data):
 
         asl_heads = [x if x != '-' else None for x in asl_heads]
 
-        transformed_data.append((asl_text, {'heads': asl_heads, 'deps': asl_deps}))
+
+        transformed_data.append((asl_text, {'heads': asl_heads, 'deps': asl_deps, 'pos': asl_pos}))
 
     print(len(transformed_data))
+
+
 
     return transformed_data
 

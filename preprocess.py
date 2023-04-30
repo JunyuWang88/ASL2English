@@ -10,13 +10,17 @@ from spacy.pipeline import DependencyParser
 from typing import List, Tuple
 import Levenshtein
 #
-# lines = ["Chuck Baird was an artist and founder of the De'VIA art movement, which conveys a Deaf world viewpoint through art.",
-#         "C-H-U-C-K B-A-I-R-D HIMSELF DEAF ARTIST HE FOUNDED D-E V-I-A MEANS WHAT? SHOW-ALL (conveys) DEAF WORLD VIEWPOINT THROUGH ART."]
+
+# lines = ["My sister is having another baby.",
+# "ANOTHER BABY MY SISTER BORN-WILL."]
+
 
 with open("EngToASLPairs.txt", "r") as f:
     lines = f.readlines()
 
-print(len(lines) / 2)
+lines = [line.strip() for line in lines if line.strip()]
+print("num of pairs is {}".format(len(lines)/ 2))
+
 
 
 def preprocess_token(token_text):
@@ -108,10 +112,9 @@ def process_asl_deps_and_pos(asl_text, english_text, english_deps, english_pos):
             asl_pos.append(english_pos[index_])
         else:
             asl_deps.append('-')
+            asl_pos.append('-')
 
     return asl_deps, asl_pos
-
-
 
 '''Given an asl token, find the closest english token '''
 
@@ -141,9 +144,10 @@ def find_best_matching_english_token(asl_token_text, english_tokens_texts, thres
 def preprocess_asl_english_data_pairs(lines):
     data = []
     num_processed_pairs = 0
-    num_pairs = len(lines) / 2
+
     # Remove newline characters and filter out empty lines
-    lines = [line.strip() for line in lines if line.strip()]
+
+    num_pairs = len(lines) / 2
     # Load the English language model
     nlp = spacy.load("en_core_web_sm")
     # Group English and ASL lines into pairs
@@ -205,8 +209,9 @@ def transform_training_data(data):
         asl_text = item['asl']['text']
         asl_heads = item['asl']['heads']
         asl_deps = item['asl']['deps']
+        asl_pos = item['asl']['pos']
 
-        transformed_data.append((asl_text, {'heads': asl_heads, 'deps': asl_deps}))
+        transformed_data.append((asl_text, {'heads': asl_heads, 'deps': asl_deps, 'pos': asl_pos}))
 
     save_to_json(transformed_data, "training_asl_data.json")
 
@@ -228,4 +233,5 @@ def load_from_json(filename):
 raw_training_data = preprocess_asl_english_data_pairs(lines)
 save_to_json(raw_training_data, "english_asl_pairs_raw_data.json")
 print(len(raw_training_data))
-# transform_training_data(raw_training_data)
+transform_training_data(raw_training_data)
+
