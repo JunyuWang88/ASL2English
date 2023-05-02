@@ -46,7 +46,7 @@ def convert_train_and_validation_spacy(TRAINING_DATA, train_ratio=0.8):
         heads = annotations['heads']
         deps = annotations['deps']
         pos = annotations['pos']
-        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps, pos=pos)
+        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps, pos=pos, tags=pos)
         train_docbin.add(doc)
     train_docbin.to_disk("./train.spacy")
 
@@ -57,7 +57,7 @@ def convert_train_and_validation_spacy(TRAINING_DATA, train_ratio=0.8):
         heads = annotations['heads']
         deps = annotations['deps']
         pos = annotations['pos']
-        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps, pos=pos)
+        doc = Doc(nlp.vocab, words=words, heads=heads, deps=deps, pos=pos, tags=pos)
         test_docbin.add(doc)
     test_docbin.to_disk("./dev.spacy")
 

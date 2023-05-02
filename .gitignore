@@ -1,0 +1,4 @@
+new_parser/
+output/
+parser.cfg/
+english_asl_pairs_*_data.json
