@@ -2,7 +2,7 @@ import openai
 import os
 
 # Make sure to replace 'your_api_key' with your actual API key
-openai.api_key = "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"
+openai.api_key = ""
 
 # Get the current directory of the script
 current_directory = os.path.dirname(os.path.abspath(__file__))
