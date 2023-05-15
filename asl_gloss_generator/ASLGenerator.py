@@ -1,7 +1,8 @@
 import openai
 import os
+
 # Make sure to replace 'your_api_key' with your actual API key
-openai.api_key = ""
+openai.api_key = "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"
 
 # Get the current directory of the script
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -12,6 +13,14 @@ with open(os.path.join(current_directory, "english_gloss.txt"), "r") as file:
     for line in file:
         english_sentences.append(line.strip())
 
+with open("EngToASLPairs.txt", "r") as f:
+    lines = f.readlines()
+lines = [line.strip() for line in lines if line.strip()]
+for i in range(0, len(lines), 2):
+    if i + 1 < len(lines):
+        english_sentences.append(lines[i])
+
+print("num of pairs is {}".format(len(english_sentences)))
 
 def translate_to_asl(chuck_of_english_sentences):
     prompt = f"Translate the user's English sentence input into an ASL gloss sequence, adhering to ASL grammar rules. " \
@@ -28,7 +37,7 @@ def translate_to_asl(chuck_of_english_sentences):
         max_tokens=2000,
     )
     asl_gloss_sequence = response.choices[0].text.strip()
-    return asl_gloss_sequence
+    return asl_gloss_sequence.lower()
 
 
 # Split the sentences into groups of 10
@@ -43,11 +52,9 @@ for idx, chunk in enumerate(chunks):
     progress_percentage = (idx + 1) / total_chunks * 100
     print(f"Progress: {progress_percentage:.2f}%")
 
-
 # Save the asl_gloss_sequences to a local file
 with open("asl_gloss_sequences.txt", "w") as file:
     for gloss in asl_gloss_sequences:
         file.write(f"{gloss}\n")
 
 print("Output saved to 'asl_gloss_sequences.txt'")
-
